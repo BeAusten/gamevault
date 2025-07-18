@@ -1,13 +1,12 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { signIn, signUp } from "@/lib/auth"
 import { useAuth } from "@/contexts/auth-context"
 import { toast } from "sonner"
@@ -20,19 +19,29 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [loginData, setLoginData] = useState({ email: "", password: "" })
   const [signupData, setSignupData] = useState({ email: "", password: "", confirmPassword: "" })
-  const [testingMode, setTestingMode] = useState(true)
+  const [testingMode, setTestingMode] = useState(false) // Initiële waarde op false
+  const [isLoadingTestingMode, setIsLoadingTestingMode] = useState(true) // Nieuwe status voor laden
 
   useEffect(() => {
     // Fetch testing mode setting
     const fetchTestingMode = async () => {
-      const { data } = await supabase
-        .from("admin_settings")
-        .select("setting_value")
-        .eq("setting_key", "testing_mode")
-        .single()
+      try {
+        const { data, error } = await supabase
+          .from("admin_settings")
+          .select("setting_value")
+          .eq("setting_key", "testing_mode")
+          .single()
 
-      if (data) {
-        setTestingMode(data.setting_value === "true")
+        if (error) {
+          console.error("Error fetching testing mode:", error)
+          return
+        }
+
+        setTestingMode(data?.setting_value === "true")
+      } catch (error) {
+        console.error("Unexpected error fetching testing mode:", error)
+      } finally {
+        setIsLoadingTestingMode(false) // Lading voltooid
       }
     }
 
@@ -111,7 +120,8 @@ export function LoginForm() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {testingMode && (
+          {/* Alleen tonen als testingMode is geladen en true is */}
+          {!isLoadingTestingMode && testingMode && (
             <div className="text-center p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30">
               <p className="text-sm text-yellow-400 mb-2">First time setup?</p>
               <Link href="/setup">
@@ -169,7 +179,7 @@ export function LoginForm() {
               </form>
 
               {/* Quick Login Buttons for Testing */}
-              {testingMode && (
+              {!isLoadingTestingMode && testingMode && (
                 <div className="space-y-2 pt-4 border-t border-slate-700">
                   <p className="text-xs text-gray-400 text-center">Quick Login (for testing):</p>
                   <div className="grid grid-cols-1 gap-2">
