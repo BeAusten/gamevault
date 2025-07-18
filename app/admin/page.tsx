@@ -10,6 +10,7 @@ import {
   markAllNotificationsAsRead,
   type Notification,
 } from "@/lib/notifications"
+import { addPurchaseTransaction } from "@/lib/wallet"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -38,6 +39,8 @@ import {
   BookOpen,
   ExternalLink,
   LinkIcon,
+  BarChart3,
+  Wallet,
 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
@@ -51,6 +54,8 @@ import { PurchaseSearch } from "@/components/admin/purchase-search"
 import { ProductActionsEditor } from "@/components/admin/product-actions-editor"
 import { DiscountCodesManager } from "@/components/admin/discount-codes-manager"
 import { UserPermissionsManager } from "@/components/admin/user-permissions-manager"
+import { StatisticsDashboard } from "@/components/admin/statistics-dashboard"
+import { WalletManager } from "@/components/admin/wallet-manager"
 
 type User = {
   id: number
@@ -557,6 +562,13 @@ export default function AdminPage() {
     }
 
     try {
+      // Get purchase details before completing
+      const purchase = purchaseRequests.find((p) => p.id === purchaseId)
+      if (purchase) {
+        // Add wallet transaction for completed purchase
+        await addPurchaseTransaction(purchase.user.email, purchase.total_price, purchase.purchase_id, purchase.items)
+      }
+
       await completePurchase(purchaseId)
       fetchPurchaseRequests()
       toast.success("Purchase marked as completed!")
@@ -606,11 +618,12 @@ export default function AdminPage() {
     }
 
     const { error } = await supabase.from("subcategories").delete().eq("id", id)
-    if (!error) {
+
+    if (error) {
+      toast.error("Error deleting subcategory: " + error.message)
+    } else {
       fetchSubcategories()
       toast.success("Subcategory deleted!")
-    } else {
-      toast.error("Error deleting subcategory: " + error.message)
     }
   }
 
@@ -743,8 +756,24 @@ export default function AdminPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="products" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-8 bg-slate-800/50 border border-green-500/20">
+        <Tabs defaultValue="statistics" className="w-full">
+          <TabsList className="grid w-full grid-cols-8 mb-8 bg-slate-800/50 border border-green-500/20">
+            <TabsTrigger
+              value="statistics"
+              className="data-[state=active]:bg-green-500/20 data-[state=active]:text-green-400"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Statistics
+            </TabsTrigger>
+            {hasPermission("view_wallet") && (
+              <TabsTrigger
+                value="wallet"
+                className="data-[state=active]:bg-green-500/20 data-[state=active]:text-green-400"
+              >
+                <Wallet className="w-4 h-4 mr-2" />
+                Wallet
+              </TabsTrigger>
+            )}
             {hasPermission("manage_products") && (
               <TabsTrigger
                 value="products"
@@ -796,6 +825,18 @@ export default function AdminPage() {
               </TabsTrigger>
             )}
           </TabsList>
+
+          {/* Statistics Tab */}
+          <TabsContent value="statistics" className="space-y-6">
+            <StatisticsDashboard />
+          </TabsContent>
+
+          {/* Wallet Tab */}
+          {hasPermission("view_wallet") && (
+            <TabsContent value="wallet" className="space-y-6">
+              <WalletManager />
+            </TabsContent>
+          )}
 
           {/* Products Tab */}
           {hasPermission("manage_products") && (
@@ -1277,7 +1318,7 @@ export default function AdminPage() {
                       <Label htmlFor="subcategory-category">Category</Label>
                       <Select
                         value={newSubcategory.category_id}
-                        onValueChange={(value) => setNewSubcategory({ ...newSubcategory, category_id: value })}
+                        onChange={(value) => setNewSubcategory({ ...newSubcategory, category_id: value })}
                       >
                         <SelectTrigger className="bg-slate-700 border-slate-600">
                           <SelectValue placeholder="Select category" />
