@@ -1267,57 +1267,56 @@ export default function AdminPage() {
                   </CardContent>
                 </Card>
 
-                {/* Add Subcategory */}
-                <Card className="bg-slate-800/50 border-green-500/20">
-                  <CardHeader>
-                    <CardTitle className="text-green-400">Add New Subcategory</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="subcategory-category">Category</Label>
-                      <Select
-                        value={newSubcategory.category_id}
-                        onChange={(e) => setNewSubcategory({ ...newSubcategory, category_id: e.target.value })}
-                      >
-                        <SelectTrigger className="bg-slate-700 border-slate-600">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories
-                            .sort((a, b) => a.name.localeCompare(b.name))
-                            .map((category) => (
-                              <SelectItem key={category.id} value={category.id.toString()}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="subcategory-name">Name</Label>
-                      <Input
-                        id="subcategory-name"
-                        value={newSubcategory.name}
-                        onChange={(e) => setNewSubcategory({ ...newSubcategory, name: e.target.value })}
-                        className="bg-slate-700 border-slate-600"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="subcategory-slug">Slug (optional)</Label>
-                      <Input
-                        id="subcategory-slug"
-                        value={newSubcategory.slug}
-                        onChange={(e) => setNewSubcategory({ ...newSubcategory, slug: e.target.value })}
-                        className="bg-slate-700 border-slate-600"
-                      />
-                    </div>
-                    <Button onClick={handleAddSubcategory} className="bg-green-600 hover:bg-green-700">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Subcategory
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
+{/* Add Subcategory */}
+<Card className="bg-slate-800/50 border-green-500/20">
+  <CardHeader>
+    <CardTitle className="text-green-400">Add New Subcategory</CardTitle>
+  </CardHeader>
+  <CardContent className="space-y-4">
+    <div>
+      <Label htmlFor="subcategory-category">Category</Label>
+      <Select
+        value={newSubcategory.category_id}
+        onValueChange={(value) => setNewSubcategory({ ...newSubcategory, category_id: value })}
+      >
+        <SelectTrigger className="bg-slate-700 border-slate-600">
+          <SelectValue placeholder="Select category" />
+        </SelectTrigger>
+        <SelectContent>
+          {categories
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((category) => (
+              <SelectItem key={category.id} value={category.id.toString()}>
+                {category.name}
+              </SelectItem>
+            ))}
+        </SelectContent>
+      </Select>
+    </div>
+    <div>
+      <Label htmlFor="subcategory-name">Name</Label>
+      <Input
+        id="subcategory-name"
+        value={newSubcategory.name}
+        onChange={(e) => setNewSubcategory({ ...newSubcategory, name: e.target.value })}
+        className="bg-slate-700 border-slate-600"
+      />
+    </div>
+    <div>
+      <Label htmlFor="subcategory-slug">Slug (optional)</Label>
+      <Input
+        id="subcategory-slug"
+        value={newSubcategory.slug}
+        onChange={(e) => setNewSubcategory({ ...newSubcategory, slug: e.target.value })}
+        className="bg-slate-700 border-slate-600"
+      />
+    </div>
+    <Button onClick={handleAddSubcategory} className="bg-green-600 hover:bg-green-700">
+      <Plus className="h-4 w-4 mr-2" />
+      Add Subcategory
+    </Button>
+  </CardContent>
+</Card>
 
               {/* Categories List */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
