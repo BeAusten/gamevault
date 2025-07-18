@@ -199,7 +199,7 @@ export default function AdminPage() {
     }
 
     // Build a simple PayPal.me link (replace with your real integration)
-    const paypalLink = `https://www.paypal.com/paypalme/gamevaultshop/${purchaseRequest.total_price.toFixed(2)}EUR`
+    const paypalLink = `https://www.paypal.com/paypalme/tobeaddedusername/${purchaseRequest.total_price.toFixed(2)}EUR`
 
     // 1. Attempt to persist the link in Supabase
     try {
@@ -1267,7 +1267,7 @@ export default function AdminPage() {
                   </CardContent>
                 </Card>
 
-{/* Add Subcategory */}
+                {/* Add Subcategory */}
 <Card className="bg-slate-800/50 border-green-500/20">
   <CardHeader>
     <CardTitle className="text-green-400">Add New Subcategory</CardTitle>
