@@ -27,11 +27,22 @@ export async function getWalletTransactions(): Promise<WalletTransaction[]> {
       .select("*")
       .order("created_at", { ascending: false })
 
-    if (error) throw error
-    return data || []
-  } catch (error) {
-    console.error("Error fetching wallet transactions:", error)
-    throw error
+    if (error) {
+      // 42P01 = undefined_table
+      if (error.code === "42P01" || error.message.includes("wallet_transactions")) {
+        console.warn(
+          "[Wallet] wallet_transactions table not found. " +
+            "Run scripts/add-wallet-system.sql to enable the Wallet feature.",
+        )
+        return []
+      }
+      throw error
+    }
+
+    return data ?? []
+  } catch (err) {
+    console.error("Error fetching wallet transactions:", err)
+    throw err
   }
 }
 
@@ -39,9 +50,25 @@ export async function getWalletStats(): Promise<WalletStats> {
   try {
     const { data, error } = await supabase.from("wallet_transactions").select("*")
 
-    if (error) throw error
+    if (error) {
+      if (error.code === "42P01" || error.message.includes("wallet_transactions")) {
+        console.warn(
+          "[Wallet] wallet_transactions table not found. " +
+            "Run scripts/add-wallet-system.sql to enable the Wallet feature.",
+        )
+        return {
+          totalBalance: 0,
+          totalIncome: 0,
+          totalExpenses: 0,
+          monthlyIncome: 0,
+          monthlyExpenses: 0,
+          transactionCount: 0,
+        }
+      }
+      throw error
+    }
 
-    const transactions = data || []
+    const transactions = data ?? []
     const now = new Date()
     const currentMonth = now.getMonth()
     const currentYear = now.getFullYear()
@@ -79,9 +106,9 @@ export async function getWalletStats(): Promise<WalletStats> {
       monthlyExpenses,
       transactionCount: transactions.length,
     }
-  } catch (error) {
-    console.error("Error fetching wallet stats:", error)
-    throw error
+  } catch (err) {
+    console.error("Error fetching wallet stats:", err)
+    throw err
   }
 }
 
