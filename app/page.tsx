@@ -153,9 +153,6 @@ export default function HomePage() {
 
   const getRarityClass = (specifications: any) => {
     const rarity = specifications?.rarity?.toLowerCase()
-    const rarityColors = JSON.parse(adminSettings.rarity_colors || "{}")
-    const color = rarityColors[rarity] || "#3B82F6"
-
     return `premium-card rarity-${rarity}` + (rarity ? ` rarity-glow` : "")
   }
 
@@ -166,26 +163,43 @@ export default function HomePage() {
 
       if (Array.isArray(colorData)) {
         // Multiple colors - create gradient
-        return `linear-gradient(135deg, ${colorData.join(", ")})`
+        return {
+          type: "gradient",
+          value: `linear-gradient(135deg, ${colorData.join(", ")})`,
+        }
       } else if (typeof colorData === "string") {
         // Single color
-        return colorData
+        return {
+          type: "solid",
+          value: colorData,
+        }
       }
 
-      return "#3B82F6"
+      return {
+        type: "solid",
+        value: "#3B82F6",
+      }
     } catch {
-      return "#3B82F6"
+      return {
+        type: "solid",
+        value: "#3B82F6",
+      }
     }
   }
 
   const getRarityColor = (specifications: any) => {
     const rarity = specifications?.rarity?.toLowerCase()
     if (rarity) {
-      const color = getRarityColorFromSettings(rarity)
-      if (color.startsWith("linear-gradient")) {
-        return { background: color, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }
+      const colorInfo = getRarityColorFromSettings(rarity)
+      if (colorInfo.type === "gradient") {
+        return {
+          background: colorInfo.value,
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          backgroundClip: "text",
+        }
       } else {
-        return { color }
+        return { color: colorInfo.value }
       }
     }
     return { color: "#3B82F6" }
@@ -328,40 +342,124 @@ export default function HomePage() {
     <div className="min-h-screen">
       {/* Add rarity glow styles */}
       <style jsx global>{`
-        .rarity-glow {
-          transition: all 0.3s ease-in-out;
-        }
-        .rarity-common { border-color: ${getRarityColorFromSettings("common")}40; }
-        .rarity-common:hover { 
-          border-color: ${getRarityColorFromSettings("common")}80; 
-          box-shadow: 0 0 20px ${getRarityColorFromSettings("common")}40;
-        }
-        .rarity-uncommon { border-color: ${getRarityColorFromSettings("uncommon")}40; }
-        .rarity-uncommon:hover { 
-          border-color: ${getRarityColorFromSettings("uncommon")}80; 
-          box-shadow: 0 0 20px ${getRarityColorFromSettings("uncommon")}40;
-        }
-        .rarity-rare { border-color: ${getRarityColorFromSettings("rare")}40; }
-        .rarity-rare:hover { 
-          border-color: ${getRarityColorFromSettings("rare")}80; 
-          box-shadow: 0 0 20px ${getRarityColorFromSettings("rare")}40;
-        }
-        .rarity-epic { border-color: ${getRarityColorFromSettings("epic")}40; }
-        .rarity-epic:hover { 
-          border-color: ${getRarityColorFromSettings("epic")}80; 
-          box-shadow: 0 0 20px ${getRarityColorFromSettings("epic")}40;
-        }
-        .rarity-legendary { border-color: ${getRarityColorFromSettings("legendary")}40; }
-        .rarity-legendary:hover { 
-          border-color: ${getRarityColorFromSettings("legendary")}80; 
-          box-shadow: 0 0 20px ${getRarityColorFromSettings("legendary")}40;
-        }
-        .rarity-mythic { border-color: ${getRarityColorFromSettings("mythic")}40; }
-        .rarity-mythic:hover { 
-          border-color: ${getRarityColorFromSettings("mythic")}80; 
-          box-shadow: 0 0 20px ${getRarityColorFromSettings("mythic")}40;
-        }
-      `}</style>
+  .rarity-glow {
+    transition: all 0.3s ease-in-out;
+    margin: 8px; /* Add margin to prevent clipping */
+  }
+  .rarity-common { 
+    border-color: ${getRarityColorFromSettings("common").value}40; 
+    ${
+      getRarityColorFromSettings("common").type === "gradient"
+        ? `border-image: ${getRarityColorFromSettings("common").value} 1;`
+        : ""
+    }
+  }
+  .rarity-common:hover { 
+    border-color: ${getRarityColorFromSettings("common").value}80; 
+    box-shadow: 0 0 20px ${
+      getRarityColorFromSettings("common").type === "gradient"
+        ? getRarityColorFromSettings("common").value.match(/#[a-fA-F0-9]{6}/)?.[0] + "40"
+        : getRarityColorFromSettings("common").value + "40"
+    };
+    transform: translateY(-4px) scale(1.02);
+  }
+  .rarity-uncommon { 
+    border-color: ${getRarityColorFromSettings("uncommon").value}40; 
+    ${
+      getRarityColorFromSettings("uncommon").type === "gradient"
+        ? `border-image: ${getRarityColorFromSettings("uncommon").value} 1;`
+        : ""
+    }
+  }
+  .rarity-uncommon:hover { 
+    border-color: ${getRarityColorFromSettings("uncommon").value}80; 
+    box-shadow: 0 0 20px ${
+      getRarityColorFromSettings("uncommon").type === "gradient"
+        ? getRarityColorFromSettings("uncommon").value.match(/#[a-fA-F0-9]{6}/)?.[0] + "40"
+        : getRarityColorFromSettings("uncommon").value + "40"
+    };
+    transform: translateY(-4px) scale(1.02);
+  }
+  .rarity-rare { 
+    border-color: ${getRarityColorFromSettings("rare").value}40; 
+    ${
+      getRarityColorFromSettings("rare").type === "gradient"
+        ? `border-image: ${getRarityColorFromSettings("rare").value} 1;`
+        : ""
+    }
+  }
+  .rarity-rare:hover { 
+    border-color: ${getRarityColorFromSettings("rare").value}80; 
+    box-shadow: 0 0 20px ${
+      getRarityColorFromSettings("rare").type === "gradient"
+        ? getRarityColorFromSettings("rare").value.match(/#[a-fA-F0-9]{6}/)?.[0] + "40"
+        : getRarityColorFromSettings("rare").value + "40"
+    };
+    transform: translateY(-4px) scale(1.02);
+  }
+  .rarity-epic { 
+    border-color: ${getRarityColorFromSettings("epic").value}40; 
+    ${
+      getRarityColorFromSettings("epic").type === "gradient"
+        ? `border-image: ${getRarityColorFromSettings("epic").value} 1;`
+        : ""
+    }
+  }
+  .rarity-epic:hover { 
+    border-color: ${getRarityColorFromSettings("epic").value}80; 
+    box-shadow: 0 0 20px ${
+      getRarityColorFromSettings("epic").type === "gradient"
+        ? getRarityColorFromSettings("epic").value.match(/#[a-fA-F0-9]{6}/)?.[0] + "40"
+        : getRarityColorFromSettings("epic").value + "40"
+    };
+    transform: translateY(-4px) scale(1.02);
+  }
+  .rarity-legendary { 
+    border-color: ${getRarityColorFromSettings("legendary").value}40; 
+    ${
+      getRarityColorFromSettings("legendary").type === "gradient"
+        ? `border-image: ${getRarityColorFromSettings("legendary").value} 1;`
+        : ""
+    }
+  }
+  .rarity-legendary:hover { 
+    border-color: ${getRarityColorFromSettings("legendary").value}80; 
+    box-shadow: 0 0 20px ${
+      getRarityColorFromSettings("legendary").type === "gradient"
+        ? getRarityColorFromSettings("legendary").value.match(/#[a-fA-F0-9]{6}/)?.[0] + "40"
+        : getRarityColorFromSettings("legendary").value + "40"
+    };
+    transform: translateY(-4px) scale(1.02);
+  }
+  .rarity-mythic { 
+    border-color: ${getRarityColorFromSettings("mythic").value}40; 
+    ${
+      getRarityColorFromSettings("mythic").type === "gradient"
+        ? `border-image: ${getRarityColorFromSettings("mythic").value} 1;`
+        : ""
+    }
+  }
+  .rarity-mythic:hover { 
+    border-color: ${getRarityColorFromSettings("mythic").value}80; 
+    box-shadow: 0 0 20px ${
+      getRarityColorFromSettings("mythic").type === "gradient"
+        ? getRarityColorFromSettings("mythic").value.match(/#[a-fA-F0-9]{6}/)?.[0] + "40"
+        : getRarityColorFromSettings("mythic").value + "40"
+    };
+    transform: translateY(-4px) scale(1.02);
+  }
+  
+  /* Fix container overflow to prevent clipping */
+  .products-container {
+    padding: 16px;
+    overflow: visible;
+  }
+  
+  /* Ensure scroll areas don't clip hover effects */
+  .scroll-area-viewport {
+    overflow: visible !important;
+  }
+`}</style>
 
       {/* Header */}
       <header className="border-b border-blue-500/20 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
@@ -546,7 +644,7 @@ export default function HomePage() {
                       <div className="relative">
                         {isMobile ? (
                           // Mobile: Compact horizontal cards
-                          <div className="space-y-3">
+                          <div className="space-y-3 products-container">
                             {subcategoryProducts.map((product) => {
                               const isOnSale = (product as any).sale_active
                               const displayPrice = isOnSale ? (product as any).sale_price : product.price
@@ -639,7 +737,7 @@ export default function HomePage() {
                         ) : (
                           // Desktop: Horizontal Scroll
                           <ScrollArea className="w-full">
-                            <div className="flex space-x-6 pb-4">
+                            <div className="flex space-x-6 pb-4 products-container">
                               {subcategoryProducts.map((product) => {
                                 const isOnSale = (product as any).sale_active
                                 const displayPrice = isOnSale ? (product as any).sale_price : product.price
